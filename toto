@@ -1,23 +1,4 @@
-@Query(value = """
-    SELECT 
-        er.report_name AS reportName,
-        er.format AS format,
-        er.size AS size,
-        er.last_updated AS lastUpdated,
-        TO_TIMESTAMP(
-            qt.NEXT_FIRE_TIME / 1000,
-            'YYYY-MM-DD HH24:MI:SS'
-        ) AS nextUpdate,
-        qt.TRIGGER_STATE AS jobStatus,
-        qc.CRON_EXPRESSION AS frequency,
-        qt.PRIORITY AS priority,
-        er.scheduled
-    FROM exported_reports er
-    LEFT JOIN qrtz_triggers qt
-        ON er.report_name || '.' || er.format = qt.JOB_NAME
-    LEFT JOIN qrtz_cron_triggers qc
-        ON qt.TRIGGER_NAME = qc.TRIGGER_NAME
-    WHERE er.uc = :uc
-""", nativeQuery = true)
-List<Object[]> findRawJobInfoByUc(@Param("uc") String uc);
-
+    ((CAST(SYSTIMESTAMP AS DATE) - TO_DATE('1970-01-01', 'YYYY-MM-DD')) * 86400) 
+    + (EXTRACT(HOUR FROM SYSTIMESTAMP) * 3600)
+    + (EXTRACT(MINUTE FROM SYSTIMESTAMP) * 60)
+    + EXTRACT(SECOND FROM SYSTIMESTAMP) AS seconds_since_epoch
