@@ -75,7 +75,7 @@ public class JasperReportService {
 
 	
 	public ResponseEntity<ApiResponse<Object>> generateReport(String uc, String reportName, String format,
-                                                          String dataSourceName) throws JRException, SQLException {
+                                                          String dataSourceName, Map<String, Object> parameters) throws JRException, SQLException {
     // Step 1: Validate data source
     Optional<DataSource> optionalDataSource = dataSourceRepository.findByUcAndName(uc, dataSourceName);
     if (!optionalDataSource.isPresent()) {
@@ -95,7 +95,7 @@ public class JasperReportService {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream()
     ) {
         // Step 3: Fill report
-        jasperPrint = JasperFillManager.fillReport(compiledFile, null, connection);
+        jasperPrint = JasperFillManager.fillReport(compiledFile, parameters, connection);
         if (jasperPrint == null) {
             return ResponseEntity.badRequest().body(new ApiResponse<>(false, "Failed to fill report "+reportName+".", null));
         }

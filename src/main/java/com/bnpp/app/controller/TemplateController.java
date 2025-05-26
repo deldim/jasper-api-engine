@@ -2,6 +2,9 @@ package com.bnpp.app.controller;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.bnpp.app.service.JasperTemplateService;
 import com.bnpp.app.shared.ApiResponse;
 
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import net.sf.jasperreports.engine.JRException;
 
 @RestController
@@ -56,10 +60,25 @@ public class TemplateController {
 
 	@PostMapping("/validate-template")
 	//@PreAuthorize("hasAuthority('TEAM_' + #uc.toUpperCase() + '_ADMIN' ) or hasRole('ADMIN')")
-	public ResponseEntity<ApiResponse<Object>> validateTemplate(@RequestParam("uc") String uc,
-			@RequestParam("templateName") String templateName, @RequestParam("dataSourceName") String dataSourceName) throws JRException, SQLException {
-		return jasperReportService.validateTemplate(uc.trim(), templateName.trim(), dataSourceName.trim());
+	public ResponseEntity<ApiResponse<Object>> validateTemplate(
+			@RequestParam("uc") String uc,
+			@RequestParam("templateName") String templateName,
+			@RequestParam("dataSourceName") String dataSourceName,
+			@RequestBody(required = false) LinkedHashMap<String, Object> parameters
+	) throws JRException, SQLException {
+
+		Map<String, Object> safeParameters = (parameters == null || parameters.isEmpty())
+			? new HashMap<>()
+			: parameters;
+
+		return jasperReportService.validateTemplate(
+			uc.trim(),
+			templateName.trim(),
+			dataSourceName.trim(),
+			safeParameters
+		);
 	}
+
 
 	@GetMapping("/get-template")
 	//@PreAuthorize("hasAuthority('TEAM_' + #uc.toUpperCase() + '_ADMIN') or hasAuthority('TEAM_' + #uc.toUpperCase() + '_VIEWER') or hasRole('ADMIN')")

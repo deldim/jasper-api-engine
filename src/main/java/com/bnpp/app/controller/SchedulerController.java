@@ -1,5 +1,7 @@
 package com.bnpp.app.controller;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bnpp.app.service.SchedulerService;
 import com.bnpp.app.shared.ApiResponse;
 
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @RestController
@@ -29,9 +32,13 @@ public class SchedulerController {
 	public ResponseEntity<ApiResponse<Object>> scheduleReport(@RequestParam("uc") String uc,
 			@RequestParam("reportName") String reportName, @RequestParam("format") String format,
 			@RequestParam("dataSourceName") String dataSourceName,
-			@RequestParam("cronExpression") String cronExpression) {
+			@RequestParam("cronExpression") String cronExpression,
+			@RequestBody(required = false) LinkedHashMap<String, Object> parameters) {
+		Map<String, Object> safeParameters = (parameters == null || parameters.isEmpty())
+		? new HashMap<>()
+		: parameters;
 		return schedulerService.scheduleReport(uc.trim(), reportName.trim(), format.trim(), dataSourceName.trim(),
-				cronExpression.trim());
+				cronExpression.trim(),parameters);
 	}
 
 	@DeleteMapping("/unschedule-report")

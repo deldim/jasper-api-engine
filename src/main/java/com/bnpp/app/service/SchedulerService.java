@@ -25,6 +25,7 @@ import org.quartz.CronScheduleBuilder;
 import org.quartz.CronTrigger;
 import org.quartz.CronExpression;
 import org.quartz.JobBuilder;
+import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
@@ -66,7 +67,8 @@ public class SchedulerService {
 		String reportName,
 		String format,
 		String dataSourceName,
-		String cronExpression) {
+		String cronExpression,
+		Map<String, Object> parameters) {
 		// 1. Validate UC directory
 		File dir = new File(repositoryPath + "/" + uc + "/");
 		if (!dir.exists() || !dir.isDirectory()) {
@@ -115,12 +117,21 @@ public class SchedulerService {
 			// Random delay between 10 and 60 minutes (step of 10)
 			int delayMinutes = ThreadLocalRandom.current().nextInt(1, 7) * 10;
 			Date startAt = Date.from(Instant.now().plus(Duration.ofMinutes(delayMinutes)));
+			JobDataMap jobDataMap = new JobDataMap();
+
+			// Add individual scalar parameters
+			jobDataMap.put("uc", uc);
+			jobDataMap.put("reportName", reportName);
+			jobDataMap.put("format", format);
+			jobDataMap.put("dataSourceName", dataSourceName);
+
+			// Add a Map<String, Object> (parameters)
+			if (parameters != null) {
+				jobDataMap.put("parameters", parameters);  // Ensure parametersMap is Serializable
+			}
 			JobDetail job = JobBuilder.newJob(RefreshReportJob.class)
 					.withIdentity(jobKey)
-					.usingJobData("uc", uc)
-					.usingJobData("reportName", reportName)
-					.usingJobData("format", format)
-					.usingJobData("dataSourceName", dataSourceName)
+					.setJobData(jobDataMap)
 					.storeDurably()
 					.build();
 			CronTrigger trigger = TriggerBuilder.newTrigger()

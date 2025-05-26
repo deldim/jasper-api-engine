@@ -2,6 +2,9 @@ package com.bnpp.app.controller;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bnpp.app.service.JasperReportService;
 import com.bnpp.app.shared.ApiResponse;
 
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import net.sf.jasperreports.engine.JRException;
 
 @RestController
@@ -35,8 +39,12 @@ public class ReportController {
 	//@PreAuthorize("hasAuthority('TEAM_' + #uc.toUpperCase() + '_ADMIN' ) or hasRole('ADMIN')")
 	public ResponseEntity<ApiResponse<Object>> generateReport(@RequestParam("uc") String uc,
 			@RequestParam("templateName") String templateName, @RequestParam("format") String format,
-			@RequestParam("dataSourceName") String dataSourceName) throws JRException, SQLException {
-		return jasperReportService.generateReport(uc.trim(), templateName.trim(), format.trim(), dataSourceName.trim());
+			@RequestParam("dataSourceName") String dataSourceName,
+			@RequestBody(required = false) LinkedHashMap<String, Object> parameters) throws JRException, SQLException {
+		Map<String, Object> safeParameters = (parameters == null || parameters.isEmpty())
+		? new HashMap<>()
+		: parameters;
+		return jasperReportService.generateReport(uc.trim(), templateName.trim(), format.trim(), dataSourceName.trim(),safeParameters);
 	}
 
 	@GetMapping("/get-report")

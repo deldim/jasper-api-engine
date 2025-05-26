@@ -23,7 +23,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.bnpp.app.dao.DynamicDataSourceManager;
 import com.bnpp.app.exception.ReportNotFoundException;
 import com.bnpp.app.model.DataSource;
-import com.bnpp.app.model.ExportedReport;
 import com.bnpp.app.model.JasperTemplate;
 import com.bnpp.app.repository.DataSourceRepository;
 import com.bnpp.app.repository.ExportedReportRepository;
@@ -101,7 +100,7 @@ public class JasperTemplateService {
 		}
 	}
 	
-	public ResponseEntity<ApiResponse<Object>> validateTemplate(String uc, String templateName, String dataSourceName) throws JRException, SQLException {
+	public ResponseEntity<ApiResponse<Object>> validateTemplate(String uc, String templateName, String dataSourceName, Map<String, Object> parameters) throws JRException, SQLException {
 		Optional<DataSource> optionalDataSource = dataSourceRepository.findByUcAndName(uc, dataSourceName);
 		if (!optionalDataSource.isPresent()) {
 			return ResponseEntity.badRequest().body(new ApiResponse<>(false, "Referenced data source is missing.", null));
@@ -133,7 +132,6 @@ public class JasperTemplateService {
 			return ResponseEntity.badRequest().body(new ApiResponse<>(false, "Template compilation failed.", e.getMessage()));
 		}
 		try (Connection connection = datasource.getConnection()) {
-			Map<String, Object> parameters = new HashMap<>();
 			JasperFillManager.fillReport(jasperReport, parameters, connection);
 		} catch (JRException e) {
 			return ResponseEntity.badRequest().body(new ApiResponse<>(false, "Data injection failed.", e.getMessage()));
